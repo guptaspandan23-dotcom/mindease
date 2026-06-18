@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header" style="margin-bottom:14px;">
+    <div>
+        <h2>💬 Talk to MindEase</h2>
+        <p>Vent, ask, or just talk. No judgment here, ever.</p>
+    </div>
+    <div class="ph-badge online">🟢 AI Online</div>
+</div>
+
+<div class="chat-wrapper">
+    <div class="chat-main">
+        <div class="chat-box" id="chat-box">
+            <div class="chat-welcome">
+                <div class="chat-welcome-icon">🌿</div>
+                <h3>Hey, I'm MindEase</h3>
+                <p>Tell me what's on your mind.<br>I'm here to listen, not judge.</p>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <textarea id="chat-input" placeholder="What's on your mind..."></textarea>
+            <button onclick="sendMessage()">Send 🌿</button>
+        </div>
+    </div>
+
+    <div class="chat-sidebar">
+        <div class="sidebar-card">
+            <div class="sidebar-title">💡 Try asking about</div>
+            <button class="prompt-chip" onclick="usePrompt(this)">I've been overthinking lately...</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">A friendship feels distant...</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">I'm feeling anxious about...</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">I need help making a decision</button>
+            <button class="prompt-chip" onclick="usePrompt(this)">I feel like no one understands me</button>
+        </div>
+        <div class="sidebar-card">
+            <div class="sidebar-title">🧘 Tips</div>
+            <div class="tip-item"><div class="tip-dot"></div><span>Be honest — the AI responds better to real feelings</span></div>
+            <div class="tip-item"><div class="tip-dot"></div><span>Share a diary entry to discuss it with AI</span></div>
+            <div class="tip-item"><div class="tip-dot"></div><span>Your conversations are private</span></div>
+            <div class="tip-item"><div class="tip-dot"></div><span>Press Enter to send, Shift+Enter for new line</span></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function sendMessage() {
+    const input = document.getElementById("chat-input");
+    const message = input.value.trim();
+    if (!message) return;
+    const welcome = document.querySelector('.chat-welcome');
+    if (welcome) welcome.remove();
+    appendMessage("you", message);
+    input.value = ""; input.style.height = '40px';
+    const typing = appendTyping();
+    const res = await fetch("/chat/send", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({message})});
+    const data = await res.json();
+    typing.remove();
+    appendMessage("mindease", data.reply);
+}
+
+function appendMessage(role, text) {
+    const box = document.getElementById("chat-box");
+    const wrap = document.createElement("div");
+    wrap.className = `chat-msg-group ${role}`;
+    const label = document.createElement("div");
+    label.className = "msg-label";
+    label.textContent = role === 'you' ? 'You' : '🌿 MindEase';
+    const msg = document.createElement("div");
+    msg.className = `chat-message ${role}`;
+    msg.textContent = text;
+    wrap.appendChild(label); wrap.appendChild(msg);
+    box.appendChild(wrap); box.scrollTop = box.scrollHeight;
+    return wrap;
+}
+
+function appendTyping() {
+    const box = document.getElementById("chat-box");
+    const wrap = document.createElement("div");
+    wrap.className = "chat-msg-group mindease";
+    const label = document.createElement("div");
+    label.className = "msg-label"; label.textContent = '🌿 MindEase';
+    const msg = document.createElement("div");
+    msg.className = "chat-message mindease";
+    msg.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    wrap.appendChild(label); wrap.appendChild(msg);
+    box.appendChild(wrap); box.scrollTop = box.scrollHeight;
+    return wrap;
+}
+
+function usePrompt(btn) { const i = document.getElementById("chat-input"); i.value = btn.textContent; i.focus(); }
+
+const ta = document.getElementById("chat-input");
+if (ta) {
+    ta.addEventListener("input", () => { ta.style.height='40px'; ta.style.height=Math.min(ta.scrollHeight,120)+'px'; });
+    ta.addEventListener("keydown", e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();} });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>🙏 Gratitude Journal</h2>
+        <p>3 things you're grateful for today. Small practice, big shift.</p>
+    </div>
+    <div class="ph-badge rose">{{ entries|length }} Days</div>
+</div>
+
+<div class="gratitude-streak">
+    <div class="streak-icon">🔥</div>
+    <div>
+        <div class="streak-num">{{ entries|length }}</div>
+        <div class="streak-label">Days of Gratitude</div>
+    </div>
+    <div style="margin-left:auto; opacity:0.85; font-size:0.88rem; font-weight:700;">
+        Keep the streak going! 💪
+    </div>
+</div>
+
+<div class="card-box">
+    <div class="card-box-title">✨ Today I'm grateful for...</div>
+    <div class="gratitude-inputs">
+        <div class="gratitude-input-row">
+            <div class="grat-num">1</div>
+            <input type="text" id="grat1" placeholder="Something that made you smile today..." />
+        </div>
+        <div class="gratitude-input-row">
+            <div class="grat-num">2</div>
+            <input type="text" id="grat2" placeholder="Someone you appreciate..." />
+        </div>
+        <div class="gratitude-input-row">
+            <div class="grat-num">3</div>
+            <input type="text" id="grat3" placeholder="A small moment you're thankful for..." />
+        </div>
+    </div>
+    <button class="btn-primary" onclick="saveGratitude()">Save Today's Gratitude 🙏</button>
+</div>
+
+<p class="section-label">Past Entries</p>
+
+{% if entries %}
+    {% for entry in entries %}
+    <div class="gratitude-entry">
+        <div class="grat-date">📅 {{ entry.created_at.strftime('%B %d, %Y') }}</div>
+        <div class="grat-items">
+            <div class="grat-item"><span class="grat-dot">✦</span>{{ entry.item1 }}</div>
+            <div class="grat-item"><span class="grat-dot">✦</span>{{ entry.item2 }}</div>
+            <div class="grat-item"><span class="grat-dot">✦</span>{{ entry.item3 }}</div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">🙏</div>
+    <h3>No entries yet</h3>
+    <p>Write your first 3 gratitudes above. It only takes 2 minutes!</p>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function saveGratitude() {
+    const item1 = document.getElementById('grat1').value.trim();
+    const item2 = document.getElementById('grat2').value.trim();
+    const item3 = document.getElementById('grat3').value.trim();
+    if (!item1 || !item2 || !item3) return showToast("Fill in all 3 gratitudes! 🙏");
+
+    const btn = document.querySelector('.btn-primary');
+    btn.textContent = "Saving..."; btn.disabled = true;
+
+    const res = await fetch('/gratitude/save', {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item1, item2, item3 })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+        showToast("Gratitude saved! 🙏");
+        fireConfetti(btn);
+        setTimeout(() => location.reload(), 900);
+    } else {
+        btn.textContent = "Save Today's Gratitude 🙏";
+        btn.disabled = false;
+    }
+}
+
+function showToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+}
+</script>
+{% endblock %}

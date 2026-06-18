@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="breathe-container">
+    <h1 class="breathe-title">🌬️ Breathe</h1>
+    <p class="breathe-subtitle">Let your breath guide you to calm.</p>
+
+    <div class="breathe-ring-wrap">
+        <div class="breathe-ring" id="breathe-ring">
+            <div class="breathe-text">
+                <span class="breathe-count" id="breathe-count">4</span>
+                <span class="breathe-phase" id="breathe-phase">Ready</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="breathe-controls">
+        <button class="breathe-btn active" onclick="setPattern('478', this)">4-7-8</button>
+        <button class="breathe-btn" onclick="setPattern('box', this)">Box</button>
+        <button class="breathe-btn" onclick="setPattern('calm', this)">4-4-4</button>
+    </div>
+
+    <button class="breathe-start" id="breathe-start" onclick="toggleBreathe()">Start ▶</button>
+    <div class="breathe-cycles" id="breathe-cycles"></div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+var patterns = {
+    '478': { inhale: 4, hold: 7, exhale: 8, name: '4-7-8 Relaxing' },
+    'box':  { inhale: 4, hold: 4, exhale: 4, name: 'Box Breathing' },
+    'calm': { inhale: 4, hold: 4, exhale: 4, name: '4-4-4 Calm' }
+};
+
+var current = '478';
+var running = false;
+var timer = null;
+var cycles = 0;
+function setPattern(p, btn) {
+    current = p;
+    document.querySelectorAll('.breathe-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (running) { stopBreathe(); }
+    reset();
+}
+
+function reset() {
+    document.getElementById('breathe-count').textContent = patterns[current].inhale;
+    document.getElementById('breathe-phase').textContent = 'Ready';
+    document.getElementById('breathe-ring').style.transform = 'scale(1)';
+    document.getElementById('breathe-ring').style.boxShadow = '0 0 60px rgba(61,145,98,0.15)';
+    document.getElementById('breathe-cycles').textContent = '';
+    cycles = 0;
+}
+
+function toggleBreathe() {
+    if (running) { stopBreathe(); } else { startBreathe(); }
+}
+
+function stopBreathe() {
+    running = false;
+    clearTimeout(timer);
+    document.getElementById('breathe-start').textContent = 'Start ▶';
+    reset();
+}
+
+async function startBreathe() {
+    running = true;
+    document.getElementById('breathe-start').textContent = 'Stop ■';
+    cycles = 0;
+    while (running) {
+        await phase('Inhale 🌬️', patterns[current].inhale, 1, 1.35, 'rgba(61,145,98,0.4)');
+        if (!running) break;
+        if (patterns[current].hold > 0) {
+            await phase('Hold 🤲', patterns[current].hold, 1.35, 1.35, 'rgba(108,95,199,0.35)');
+        }
+        if (!running) break;
+        await phase('Exhale 😮‍💨', patterns[current].exhale, 1.35, 1, 'rgba(61,145,98,0.15)');
+        if (!running) break;
+        cycles++;
+        document.getElementById('breathe-cycles').textContent = `✅ ${cycles} cycle${cycles > 1 ? 's' : ''} completed`;
+        if (cycles === 3 || cycles === 5) {
+            celebrateStreak();
+        }
+    }
+}
+
+
+function phase(label, seconds, scaleFrom, scaleTo, glow) {
+    return new Promise(resolve => {
+        let remaining = seconds;
+        const ring = document.getElementById('breathe-ring');
+        const countEl = document.getElementById('breathe-count');
+        const phaseEl = document.getElementById('breathe-phase');
+
+        phaseEl.textContent = label;
+        ring.style.transition = `transform ${seconds}s ease-in-out, box-shadow ${seconds}s ease`;
+        ring.style.transform = `scale(${scaleTo})`;
+        ring.style.boxShadow = `0 0 80px ${glow}`;
+
+        countEl.textContent = remaining;
+        const tick = setInterval(() => {
+            if (!running) { clearInterval(tick); resolve(); return; }
+            remaining--;
+            countEl.textContent = remaining > 0 ? remaining : '';
+            if (remaining <= 0) { clearInterval(tick); setTimeout(resolve, 400); }
+        }, 1000);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="vent-container">
+
+    <div class="vent-header">
+        <div class="vent-badge">🔒 Nothing is saved. Ever.</div>
+        <h1>Let it all out.</h1>
+        <p>Say everything you can't say to anyone. Scream, cry, vent — this space is yours and yours alone. When you're done, it disappears forever.</p>
+    </div>
+
+    <!-- Vent Box -->
+    <div class="vent-box-wrap" id="vent-wrap">
+        <div class="vent-wordcount" id="vent-wordcount">0 words</div>
+        <textarea
+            id="vent-text"
+            class="vent-textarea"
+            placeholder="Start typing... no one is watching, nothing is saved. Just you and your thoughts."
+            autofocus
+        ></textarea>
+        <div class="vent-actions">
+            <button class="vent-btn release" onclick="releaseVent()">
+                🔥 Release & Delete
+            </button>
+            <button class="vent-btn talk" onclick="ventToAI()">
+                💚 Talk to AI about this
+            </button>
+            <button class="vent-btn clear" onclick="clearVent()">
+                🗑️ Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- AI Response -->
+    <div class="vent-ai-box" id="vent-ai-box" style="display:none;">
+        <div class="vent-ai-label">💚 MindEase heard you</div>
+        <div class="vent-ai-text" id="vent-ai-text"></div>
+        <button class="vent-btn release" onclick="resetVent()" style="margin-top:16px;">
+            Start fresh
+        </button>
+    </div>
+
+    <!-- Release Animation -->
+    <div class="vent-release-overlay" id="vent-release">
+        <div class="vent-release-content">
+            <div class="vent-release-icon">🌿</div>
+            <h2>Released.</h2>
+            <p>It's gone. You let it go.<br>Take a deep breath.</p>
+            <div class="vent-release-ring" id="release-ring"></div>
+            <button class="vent-btn talk" onclick="resetVent()" style="margin-top:24px;">
+                I feel better now
+            </button>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const textarea = document.getElementById('vent-text');
+const wordcount = document.getElementById('vent-wordcount');
+
+textarea.addEventListener('input', () => {
+    const words = textarea.value.trim().split(/\s+/).filter(w => w).length;
+    wordcount.textContent = words + ' word' + (words !== 1 ? 's' : '');
+});
+
+function releaseVent() {
+    if (!textarea.value.trim()) return showToast("Type something first 💚");
+    textarea.value = '';
+    wordcount.textContent = '0 words';
+    document.getElementById('vent-release').classList.add('open');
+    startReleaseBreath();
+}
+
+function clearVent() {
+    textarea.value = '';
+    wordcount.textContent = '0 words';
+    textarea.focus();
+}
+
+async function ventToAI() {
+    const text = textarea.value.trim();
+    if (!text) return showToast("Type something first 💚");
+
+    const btn = document.querySelector('.vent-btn.talk');
+    btn.textContent = 'Listening... 💚';
+    btn.disabled = true;
+
+    const res = await fetch('/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text })
+    });
+    const data = await res.json();
+
+    // Clear textarea - nothing saved
+    textarea.value = '';
+    wordcount.textContent = '0 words';
+
+    document.getElementById('vent-wrap').style.display = 'none';
+    document.getElementById('vent-ai-box').style.display = 'block';
+    document.getElementById('vent-ai-text').textContent = data.reply;
+
+    btn.textContent = '💚 Talk to AI about this';
+    btn.disabled = false;
+}
+
+function resetVent() {
+    document.getElementById('vent-release').classList.remove('open');
+    document.getElementById('vent-ai-box').style.display = 'none';
+    document.getElementById('vent-wrap').style.display = 'block';
+    textarea.value = '';
+    wordcount.textContent = '0 words';
+    textarea.focus();
+    stopReleaseBreath();
+}
+
+// Release breathing animation
+let releaseRunning = false;
+let releaseTimer = null;
+
+function startReleaseBreath() {
+    releaseRunning = true;
+    const ring = document.getElementById('release-ring');
+    let expanding = true;
+
+    function pulse() {
+        if (!releaseRunning) return;
+        ring.style.transform = expanding ? 'scale(1.4)' : 'scale(1)';
+        ring.style.opacity = expanding ? '0.8' : '0.3';
+        expanding = !expanding;
+        releaseTimer = setTimeout(pulse, 2000);
+    }
+    pulse();
+}
+
+function stopReleaseBreath() {
+    releaseRunning = false;
+    clearTimeout(releaseTimer);
+}
+
+function showToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+}
+</script>
+{% endblock %}

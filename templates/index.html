@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% block content %}
+{% if not session.user_name %}
+
+<div class="welcome-screen">
+    <div class="welcome-left">
+        <div class="welcome-badge">✨ Your personal safe space</div>
+        <h1>A quiet place<br>for your <span>mind.</span></h1>
+        <p class="tagline">Write freely, track your moods, and talk through anything — privately, without judgment.</p>
+        <div class="welcome-features">
+            <div class="wf-item"><span class="wf-dot green"></span>Private diary with AI therapist</div>
+            <div class="wf-item"><span class="wf-dot purple"></span>Mood tracking with insights</div>
+            <div class="wf-item"><span class="wf-dot orange"></span>24/7 AI companion to talk to</div>
+            <div class="wf-item"><span class="wf-dot rose"></span>Breathing exercises & gratitude</div>
+        </div>
+
+        {% if request.args.get('error') %}
+        <div style="background: var(--rose-light); color: var(--rose); padding: 10px 16px; border-radius: 10px; font-size: 0.86rem; font-weight: 700; margin-bottom: 14px;">
+            ⚠️ {{ request.args.get('error') }}
+        </div>
+        {% endif %}
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="showAuthTab('login', this)">Log In</button>
+            <button class="auth-tab" onclick="showAuthTab('signup', this)">Sign Up</button>
+        </div>
+
+        <form action="/login" method="POST" id="login-form" class="welcome-form">
+            <input type="text" name="username" placeholder="Username" required autocomplete="off"/>
+            <input type="password" name="password" placeholder="Password" required/>
+            <button type="submit">Log in →</button>
+        </form>
+
+        <form action="/signup" method="POST" id="signup-form" class="welcome-form" style="display:none;">
+            <input type="text" name="name" placeholder="Your name" required autocomplete="off"/>
+            <input type="text" name="username" placeholder="Choose a username" required autocomplete="off"/>
+            <input type="password" name="password" placeholder="Choose a password (6+ characters)" required/>
+            <button type="submit">Create account →</button>
+        </form>
+    </div>
+    <div class="welcome-right">
+        <div class="preview-card pc-diary">
+            <div class="pc-header"><span class="pc-dot"></span>My Diary</div>
+            <p class="pc-text">"Today was hard but I'm proud of how I handled it..."</p>
+            <div class="pc-tag">📔 Just now</div>
+        </div>
+        <div class="preview-card pc-mood">
+            <div class="pc-header"><span class="pc-dot purple"></span>Mood Check-in</div>
+            <div class="pc-moods">
+                <span class="pcm selected">😌 Calm</span>
+                <span class="pcm">😄 Happy</span>
+                <span class="pcm">😢 Sad</span>
+            </div>
+        </div>
+        <div class="preview-card pc-chat">
+            <div class="pc-header"><span class="pc-dot orange"></span>MindEase AI</div>
+            <div class="pc-bubble ai">That sounds really tough. You handled it well though 💚</div>
+        </div>
+    </div>
+</div>
+
+{% else %}
+
+<div class="dashboard">
+
+    <div class="dashboard-hero">
+        <div class="hero-content">
+            <div class="hero-label">Welcome back</div>
+            <h2>{{ session.user_name }} 🌿</h2>
+            <p>This is your safe space. No judgment, just you and your thoughts.</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-num" id="entry-count">—</div>
+                    <div class="hero-stat-label">Diary Entries</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num" id="mood-count">—</div>
+                    <div class="hero-stat-label">Mood Logs</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-num" id="today-date">—</div>
+                    <div class="hero-stat-label">Today</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="section-label">Quick Overview</p>
+    <div class="insight-strip">
+        <div class="insight-card">
+            <div class="insight-icon orange">📔</div>
+            <div>
+                <div class="insight-num" id="ins-entries">—</div>
+                <div class="insight-label">Total Entries</div>
+            </div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-icon purple">💬</div>
+            <div>
+                <div class="insight-num" id="ins-chats">—</div>
+                <div class="insight-label">AI Chats</div>
+            </div>
+        </div>
+        <div class="insight-card">
+            <div class="insight-icon green">😊</div>
+            <div>
+                <div class="insight-num" id="ins-moods">—</div>
+                <div class="insight-label">Mood Logs</div>
+            </div>
+        </div>
+    </div>
+
+    <p class="section-label">Your Space</p>
+    <div class="cards-grid">
+        <a href="{{ url_for('diary') }}" class="card">
+            <div class="card-icon-wrap">📔</div>
+            <div class="card-title">My Diary</div>
+            <div class="card-desc">Write your thoughts freely. Private and safe.</div>
+            <div class="card-cta">Open →</div>
+        </a>
+        <a href="{{ url_for('chat') }}" class="card">
+            <div class="card-icon-wrap">💬</div>
+            <div class="card-title">Talk to AI</div>
+            <div class="card-desc">Vent, ask, or just talk it out anytime.</div>
+            <div class="card-cta">Chat →</div>
+        </a>
+        <a href="{{ url_for('mood') }}" class="card">
+            <div class="card-icon-wrap">😊</div>
+            <div class="card-title">Mood Tracker</div>
+            <div class="card-desc">Log how you feel and see your patterns.</div>
+            <div class="card-cta">Track →</div>
+        </a>
+        <a href="{{ url_for('breathe') }}" class="card">
+            <div class="card-icon-wrap">🌬️</div>
+            <div class="card-title">Breathe</div>
+            <div class="card-desc">Animated breathing guide to calm your mind.</div>
+            <div class="card-cta">Breathe →</div>
+        </a>
+        <a href="{{ url_for('gratitude') }}" class="card">
+            <div class="card-icon-wrap">🙏</div>
+            <div class="card-title">Gratitude</div>
+            <div class="card-desc">3 things daily. Build a grateful mindset.</div>
+            <div class="card-cta">Write →</div>
+        </a>
+        <a href="{{ url_for('vent') }}" class="card">
+            <div class="card-icon-wrap">💨</div>
+            <div class="card-title">Vent Mode</div>
+            <div class="card-desc">Say everything. Saved nowhere. Gone forever.</div>
+            <div class="card-cta">Vent →</div>
+        </a>
+    </div>
+
+    <div class="home-bottom">
+        <div class="affirmation-box">
+            <div class="aff-icon">✨</div>
+            <div>
+                <div class="aff-label">Today's Affirmation</div>
+                <div class="aff-text" id="affirmation"></div>
+            </div>
+        </div>
+        <div class="quick-mood-box">
+            <div class="aff-label">Quick Mood Check</div>
+            <div class="quick-moods">
+                <button class="qm-btn" onclick="quickMood('happy', this)">😄</button>
+                <button class="qm-btn" onclick="quickMood('calm', this)">😌</button>
+                <button class="qm-btn" onclick="quickMood('anxious', this)">😰</button>
+                <button class="qm-btn" onclick="quickMood('sad', this)">😢</button>
+                <button class="qm-btn" onclick="quickMood('confused', this)">😕</button>
+            </div>
+            <div id="qm-msg" style="font-size:0.8rem; color:var(--text-light); margin-top:8px; min-height:18px;"></div>
+        </div>
+    </div>
+
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showAuthTab(tab, btn) {
+    document.querySelectorAll('.auth-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('login-form').style.display = tab === 'login' ? 'flex' : 'none';
+    document.getElementById('signup-form').style.display = tab === 'signup' ? 'flex' : 'none';
+}
+
+const affirmations = [
+    "You are enough, exactly as you are.",
+    "It's okay to not have everything figured out.",
+    "Your feelings are valid. All of them.",
+    "Small steps still move you forward.",
+    "You've survived every hard day so far.",
+    "Rest is productive. You deserve it.",
+    "You don't have to be perfect to be worthy.",
+];
+const el = document.getElementById("affirmation");
+if (el) el.textContent = affirmations[new Date().getDay() % affirmations.length];
+
+const dateEl = document.getElementById("today-date");
+if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en', {month:'short', day:'numeric'});
+
+fetch('/stats').then(r => r.json()).then(d => {
+    ['entry-count','ins-entries'].forEach(id => { const e = document.getElementById(id); if(e) e.textContent = d.entries ?? '0'; });
+    ['mood-count','ins-moods'].forEach(id => { const e = document.getElementById(id); if(e) e.textContent = d.moods ?? '0'; });
+    const c = document.getElementById('ins-chats'); if(c) c.textContent = d.chats ?? '0';
+}).catch(() => {});
+
+async function quickMood(mood, btn) {
+    document.querySelectorAll('.qm-btn').forEach(b => b.style.opacity = '0.4');
+    btn.style.opacity = '1';
+    btn.style.transform = 'scale(1.3)';
+    await fetch("/mood/save", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({mood, note: "Quick check-in"})
+    });
+    document.getElementById('qm-msg').textContent = '✅ Mood logged!';
+    setTimeout(() => {
+        document.querySelectorAll('.qm-btn').forEach(b => { b.style.opacity='1'; b.style.transform=''; });
+        document.getElementById('qm-msg').textContent = '';
+    }, 2000);
+}
+</script>
+{% endblock %}

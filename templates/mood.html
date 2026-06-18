@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>😊 Mood Tracker</h2>
+        <p>Check in with yourself daily. Small awareness creates big clarity.</p>
+    </div>
+    <div class="ph-badge green">Last 7 Days</div>
+</div>
+
+<div class="mood-grid">
+    <div>
+        <div class="card-box">
+            <div class="card-box-title">How are you feeling right now?</div>
+            <div class="mood-options">
+                <button class="mood-btn" onclick="selectMood(this,'happy')"><span class="me">😄</span>Happy</button>
+                <button class="mood-btn" onclick="selectMood(this,'calm')"><span class="me">😌</span>Calm</button>
+                <button class="mood-btn" onclick="selectMood(this,'anxious')"><span class="me">😰</span>Anxious</button>
+                <button class="mood-btn" onclick="selectMood(this,'sad')"><span class="me">😢</span>Sad</button>
+                <button class="mood-btn" onclick="selectMood(this,'confused')"><span class="me">😕</span>Confused</button>
+            </div>
+            <textarea id="mood-note" placeholder="What's making you feel this way? (optional)..." style="height:88px;"></textarea>
+            <button class="btn-primary" onclick="saveMood()">Log My Mood 🌿</button>
+        </div>
+        <div class="mood-history">
+            <div class="mood-history-title">📈 Mood Over Time</div>
+            <canvas id="moodChart" height="150"></canvas>
+        </div>
+    </div>
+
+    <div class="mood-history">
+        <div class="mood-history-title">🗓️ Recent Logs</div>
+        {% if logs %}
+        <div class="mood-log-list">
+            {% for log in logs %}
+            <div class="mood-log-item">
+                <span class="mood-tag {{ log.mood }}">{{ log.mood }}</span>
+                <span class="mood-note-text">{{ log.note or "No note added" }}</span>
+                <span class="mood-date">{{ log.created_at[:10] }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state" style="padding:36px 10px; border:none;">
+            <div class="empty-state-icon">📊</div>
+            <h3>No logs yet</h3>
+            <p>Log your first mood to start tracking your patterns.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+var selectedMood = null;
+function selectMood(btn, mood) {
+    document.querySelectorAll(".mood-btn").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected"); selectedMood = mood;
+}
+
+async function saveMood() {
+    if (!selectedMood) return showToast("Pick a mood first 😊");
+    const note = document.getElementById("mood-note").value;
+    const btn = document.querySelector('.btn-primary'); btn.textContent = "Saving..."; btn.disabled = true;
+    const res = await fetch("/mood/save", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({mood:selectedMood, note})});
+    const data = await res.json();
+    if (data.success) {
+    showToast("Mood logged! ✅");
+    fireConfetti(document.querySelector('.btn-primary'));
+    setTimeout(() => location.reload(), 900);
+}
+}
+
+function showToast(msg) {
+    const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+    document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
+}
+
+const moodMap = { happy: 5, calm: 4, confused: 3, anxious: 2, sad: 1 };
+const moodColors = { happy: '#eab84a', calm: '#3d9162', confused: '#8677d4', anxious: '#e07070', sad: '#5a9ad4' };
+const logs = {{ logs | tojson }};
+const labels = logs.map(l => l.created_at.slice(0, 10)).reverse();
+const values = logs.map(l => moodMap[l.mood] || 3).reverse();
+const pts = logs.map(l => moodColors[l.mood] || '#888').reverse();
+
+if (document.getElementById("moodChart")) {
+    new Chart(document.getElementById("moodChart"), {
+        type:"line",
+        data:{ labels, datasets:[{ data:values, borderColor:'#3d9162', backgroundColor:'rgba(61,145,98,0.07)', tension:0.4, fill:true, pointRadius:7, pointBackgroundColor:pts, pointBorderColor:'white', pointBorderWidth:2 }] },
+        options:{ plugins:{legend:{display:false}}, scales:{ y:{ min:0, max:6, ticks:{ stepSize:1, callback:v=>['','😢','😰','😕','😌','😄',''][v]||'' }, grid:{color:'#ede7dc'} }, x:{grid:{display:false}, ticks:{font:{size:11}}} } }
+    });
+}
+</script>
+{% endblock %}

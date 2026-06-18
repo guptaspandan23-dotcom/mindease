@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>📔 My Diary</h2>
+        <p>Your thoughts, your space. Write freely — only you can see this.</p>
+    </div>
+    <div class="ph-badge purple">{{ entries|length }} Entries</div>
+</div>
+
+<div class="card-box">
+    <div class="card-box-title">✍️ Write a new entry</div>
+    <input type="text" id="diary-title" placeholder="Give it a title (optional)..." />
+    <textarea id="diary-content" placeholder="What's on your mind today? This is just for you..."></textarea>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <button class="btn-primary" onclick="saveDiary()">Save Entry 💾</button>
+        <span style="font-size:0.78rem; color:var(--text-light);" id="char-count">0 characters</span>
+    </div>
+</div>
+
+<p class="section-label">Past Entries</p>
+
+{% if entries %}
+<div class="entries-list">
+    {% for entry in entries %}
+    <div class="entry-card" id="entry-{{ entry.id }}">
+        <div class="entry-header">
+            <div class="entry-title">{{ entry.title or "Untitled Entry" }}</div>
+            <div class="entry-date">📅 {{ entry.created_at.strftime('%b %d, %Y') }}</div>
+        </div>
+        <p class="entry-content">{{ entry.content }}</p>
+        {% if entry.ai_response %}
+        <div class="ai-response-box">
+            <div class="ai-label">🤖 MindEase Therapist</div>
+            <div class="ai-response-text">{{ entry.ai_response }}</div>
+        </div>
+        {% else %}
+        <button class="discuss-btn" onclick="discussEntry({{ entry.id }})">💬 Discuss with AI Therapist</button>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-state-icon">📔</div>
+    <h3>No entries yet</h3>
+    <p>Write your first entry above. Your thoughts are completely private here.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+var content = document.getElementById("diary-content");
+var counter = document.getElementById("char-count");
+if (content) content.addEventListener("input", () => { counter.textContent = content.value.length + " characters"; });
+
+async function saveDiary() {
+    const title = document.getElementById("diary-title").value;
+    const cnt = document.getElementById("diary-content").value;
+    if (!cnt.trim()) return showToast("Write something first 📝");
+    const btn = document.querySelector('.btn-primary');
+    btn.textContent = "Saving..."; btn.disabled = true;
+    const res = await fetch("/diary/save", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({title, content: cnt}) });
+    const data = await res.json();
+if (data.success) {
+    showToast("Entry saved! ✅");
+    fireConfetti(document.querySelector('.btn-primary'));
+    setTimeout(() => location.reload(), 900);
+}
+}
+
+async function discussEntry(id) {
+    const btn = document.querySelector(`#entry-${id} .discuss-btn`);
+    btn.innerHTML = '<span class="typing-dots"><span></span><span></span><span></span></span> Thinking...';
+    btn.disabled = true;
+    const res = await fetch(`/diary/discuss/${id}`, {method:"POST"});
+    const data = await res.json();
+    if (data.response) location.reload();
+}
+
+function showToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast'; t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+}
+</script>
+{% endblock %}

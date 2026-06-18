@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindEase 🌿</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+
+{% if session.user_name %}
+<nav class="navbar">
+    <div class="nav-logo">🌿 MindEase</div>
+<div class="nav-links">
+    <a href="/index" onclick="navigate('/'); return false;" class="{{ 'active' if request.endpoint == 'index' }}">🏠 Home</a>
+    <a href="/diary" onclick="navigate('/diary'); return false;" class="{{ 'active' if request.endpoint == 'diary' }}">📔 Diary</a>
+    <a href="/chat" onclick="navigate('/chat'); return false;" class="{{ 'active' if request.endpoint == 'chat' }}">💬 Chat</a>
+    <a href="/mood" onclick="navigate('/mood'); return false;" class="{{ 'active' if request.endpoint == 'mood' }}">😊 Mood</a>
+    <a href="/breathe" onclick="navigate('/breathe'); return false;" class="{{ 'active' if request.endpoint == 'breathe' }}">🌬️ Breathe</a>
+    <a href="/gratitude" onclick="navigate('/gratitude'); return false;" class="{{ 'active' if request.endpoint == 'gratitude' }}">🙏 Gratitude</a>
+    <a href="/vent" onclick="navigate('/vent'); return false;" class="{{ 'active' if request.endpoint == 'vent' }}">💨 Vent</a>
+</div>
+</div>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <a href="{{ url_for('logout') }}" style="font-size:0.78rem; color:var(--text-light); text-decoration:none; font-weight:700;">Log out</a>
+        <button class="dark-toggle" onclick="toggleDark()" id="dark-btn">🌙</button>
+        <div class="nav-user">👤 {{ session.user_name }}</div>
+    </div>
+</nav>
+{% endif %}
+
+<main class="container">
+    {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+<!-- Crisis Support -->
+<div class="crisis-btn" onclick="openCrisis()" title="Need help?">🆘</div>
+
+<div class="crisis-overlay" id="crisis-overlay">
+    <div class="crisis-modal">
+        <button class="crisis-close" onclick="closeCrisis()">✕</button>
+        <div class="crisis-header">
+            <div class="crisis-icon">💚</div>
+            <h2>You're not alone</h2>
+            <p>Take a breath. We've got you.</p>
+        </div>
+
+        <div class="crisis-tabs">
+            <button class="crisis-tab active" onclick="showTab('ground', this)">🌱 Ground</button>
+            <button class="crisis-tab" onclick="showTab('breathe', this)">🌬️ Breathe</button>
+            <button class="crisis-tab" onclick="showTab('talk', this)">💬 Talk</button>
+        </div>
+
+        <!-- Grounding -->
+        <div class="crisis-content" id="tab-ground">
+            <h3>5-4-3-2-1 Grounding</h3>
+            <p class="crisis-desc">Focus on your senses. This brings you back to the present moment.</p>
+            <div class="ground-steps">
+                <div class="ground-step">
+                    <span class="ground-num">5</span>
+                    <span>things you can <strong>see</strong></span>
+                </div>
+                <div class="ground-step">
+                    <span class="ground-num">4</span>
+                    <span>things you can <strong>touch</strong></span>
+                </div>
+                <div class="ground-step">
+                    <span class="ground-num">3</span>
+                    <span>things you can <strong>hear</strong></span>
+                </div>
+                <div class="ground-step">
+                    <span class="ground-num">2</span>
+                    <span>things you can <strong>smell</strong></span>
+                </div>
+                <div class="ground-step">
+                    <span class="ground-num">1</span>
+                    <span>thing you can <strong>taste</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breathe -->
+        <div class="crisis-content hidden" id="tab-breathe">
+            <h3>Box Breathing</h3>
+            <p class="crisis-desc">Inhale 4 counts, hold 4, exhale 4. Repeat 4 times.</p>
+            <div class="mini-breathe">
+                <div class="mini-ring" id="mini-ring">
+                    <span id="mini-count">4</span>
+                    <small id="mini-phase">Inhale</small>
+                </div>
+                <button class="breathe-start" onclick="startMiniBreath()" id="mini-btn">Start ▶</button>
+            </div>
+        </div>
+
+        <!-- Talk -->
+        <div class="crisis-content hidden" id="tab-talk">
+            <h3>Talk it out</h3>
+            <p class="crisis-desc">Tell MindEase how you're feeling right now.</p>
+            <textarea id="crisis-input" placeholder="What's happening right now? Let it out..."></textarea>
+            <button class="btn-primary" onclick="crisisChat()">Get Support 💚</button>
+            <div id="crisis-response" class="crisis-response"></div>
+            <div class="crisis-resources">
+                <p>🆘 <strong>iCall India:</strong> 9152987821</p>
+                <p>💙 <strong>Vandrevala Foundation:</strong> 1860-2662-345</p>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Sound Player -->
+<div class="sound-player" id="sound-player">
+    <button class="sound-toggle" onclick="toggleSoundPanel()" id="sound-toggle-btn">🎵</button>
+    <div class="sound-panel" id="sound-panel">
+        <div class="sound-panel-title">🎵 Soothing Sounds</div>
+        <div class="sound-options-2">
+           <div class="sound-options-2">
+    <button class="sound-opt-2" onclick="playSound('cosmic')" id="snd-cosmic">
+        <div class="sopt-icon">🌌</div>
+        <div>
+            <div class="sopt-label">Cosmic Dream</div>
+            <div class="sopt-desc">Deep space pads & ethereal shimmer</div>
+        </div>
+    </button>
+    <button class="sound-opt-2" onclick="playSound('lullaby')" id="snd-lullaby">
+        <div class="sopt-icon">🌸</div>
+        <div>
+            <div class="sopt-label">Gentle Lullaby</div>
+            <div class="sopt-desc">Soft music box melody & warm pads</div>
+        </div>
+    </button>
+</div>
+        <div class="sound-volume">
+            <span>🔈</span>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5" oninput="setVolume(this.value)">
+            <span>🔊</span>
+        </div>
+        <div class="sound-now" id="sound-now">No sound playing</div>
+        <button class="sound-stop-btn" onclick="stopSound()">⏹ Stop</button>
+    </div>
+</div>
+</div>
+</body>
+</html>
