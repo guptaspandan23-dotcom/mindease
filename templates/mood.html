@@ -36,7 +36,7 @@
             <div class="mood-log-item">
                 <span class="mood-tag {{ log.mood }}">{{ log.mood }}</span>
                 <span class="mood-note-text">{{ log.note or "No note added" }}</span>
-                <span class="mood-date">{{ log.created_at[:10] }}</span>
+                <span class="mood-date">{{ log.created_at.strftime('%b %d') }}</span>
             </div>
             {% endfor %}
         </div>
