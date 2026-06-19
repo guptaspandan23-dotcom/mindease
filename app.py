@@ -171,7 +171,15 @@ def send_message():
 def mood():
     user_id = session.get("user_id")
     logs = MoodLog.query.filter_by(user_id=user_id).order_by(MoodLog.created_at.desc()).limit(7).all()
-    return render_template("mood.html", logs=logs)
+    logs_data = [
+        {
+            "mood": log.mood,
+            "note": log.note,
+            "created_at": log.created_at.strftime('%Y-%m-%d')
+        }
+        for log in logs
+    ]
+    return render_template("mood.html", logs=logs, logs_data=logs_data)
 
 
 @app.route("/mood/save", methods=["POST"])
