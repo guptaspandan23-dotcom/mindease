@@ -80,7 +80,7 @@ function showToast(msg) {
 
 const moodMap = { happy: 5, calm: 4, confused: 3, anxious: 2, sad: 1 };
 const moodColors = { happy: '#eab84a', calm: '#3d9162', confused: '#8677d4', anxious: '#e07070', sad: '#5a9ad4' };
-const logs = {{ logs_data | tojson }};
+const logs_data = {{ logs_data | tojson }};
 const labels = logs_data.map(l => l.created_at.slice(0, 10)).reverse();
 const values = logs_data.map(l => moodMap[l.mood] || 3).reverse();
 const pts = logs_data.map(l => moodColors[l.mood] || '#888').reverse();
