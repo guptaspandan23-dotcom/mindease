@@ -631,6 +631,9 @@ function navigate(url) {
                         runNext(index + 1);
                         return;
                     }
+                    if (oldScript.src.includes('main.js')) {
+                        runNext(index + 1);
+                        return;
                     s.src = oldScript.src;
                     s.onload = () => runNext(index + 1);
                     s.onerror = () => runNext(index + 1);
@@ -658,6 +661,8 @@ function initVoiceInput(buttonId, inputId) {
     const btn = document.getElementById(buttonId);
     const input = document.getElementById(inputId);
     if (!btn || !input) return;
+    if (btn.dataset.voiceInitialized === 'true') return;
+    btn.dataset.voiceInitialized = 'true';
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
