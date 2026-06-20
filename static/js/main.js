@@ -631,9 +631,6 @@ function navigate(url) {
                         runNext(index + 1);
                         return;
                     }
-                    if (oldScript.src.includes('main.js')) {
-                        runNext(index + 1);
-                        return;
                     s.src = oldScript.src;
                     s.onload = () => runNext(index + 1);
                     s.onerror = () => runNext(index + 1);
@@ -656,64 +653,3 @@ function navigate(url) {
 window.addEventListener('popstate', (e) => {
     if (e.state && e.state.url) navigate(e.state.url);
 });
-// ── VOICE INPUT (Web Speech API) ──
-function initVoiceInput(buttonId, inputId) {
-    const btn = document.getElementById(buttonId);
-    const input = document.getElementById(inputId);
-    if (!btn || !input) return;
-    if (btn.dataset.voiceInitialized === 'true') return;
-    btn.dataset.voiceInitialized = 'true';
-
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-        btn.style.display = 'none';
-        return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-IN';
-
-    let isListening = false;
-
-    btn.addEventListener('click', () => {
-        if (isListening) {
-            recognition.stop();
-            return;
-        }
-        try {
-            recognition.start();
-        } catch (e) {
-            console.error('Speech recognition error:', e);
-        }
-    });
-
-    recognition.onstart = () => {
-        isListening = true;
-        btn.classList.add('listening');
-        btn.title = 'Listening... click to stop';
-    };
-
-    recognition.onend = () => {
-        isListening = false;
-        btn.classList.remove('listening');
-        btn.title = 'Click to speak';
-    };
-
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        const existing = input.value.trim();
-        input.value = existing ? existing + ' ' + transcript : transcript;
-        input.dispatchEvent(new Event('input'));
-        input.focus();
-    };
-
-    recognition.onerror = (event) => {
-        console.error('Speech recognition error:', event.error);
-        if (event.error === 'not-allowed') {
-            alert('Microphone access denied. Please allow microphone access to use voice input.');
-        }
-    };
-}

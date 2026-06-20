@@ -18,7 +18,6 @@
             </div>
         </div>
         <div class="chat-input-area">
-            <button class="voice-btn" id="chat-voice-btn" title="Click to speak">🎤</button>
             <textarea id="chat-input" placeholder="What's on your mind..."></textarea>
             <button onclick="sendMessage()">Send 🌿</button>
         </div>
@@ -97,6 +96,5 @@ if (ta) {
     ta.addEventListener("input", () => { ta.style.height='40px'; ta.style.height=Math.min(ta.scrollHeight,120)+'px'; });
     ta.addEventListener("keydown", e => { if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();} });
 }
-initVoiceInput('chat-voice-btn', 'chat-input');
 </script>
 {% endblock %}

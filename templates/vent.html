@@ -12,7 +12,6 @@
     <!-- Vent Box -->
     <div class="vent-box-wrap" id="vent-wrap">
     <div class="vent-wordcount" id="vent-wordcount">0 words</div>
-    <button class="voice-btn" id="vent-voice-btn" title="Click to speak" style="position:absolute; top:14px; right:14px; z-index:5;">🎤</button>
     <textarea
         id="vent-text"
         class="vent-textarea"
@@ -62,7 +61,6 @@
 <script>
 const textarea = document.getElementById('vent-text');
 const wordcount = document.getElementById('vent-wordcount');
-
 textarea.addEventListener('input', () => {
     const words = textarea.value.trim().split(/\s+/).filter(w => w).length;
     wordcount.textContent = words + ' word' + (words !== 1 ? 's' : '');
