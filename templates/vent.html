@@ -11,14 +11,15 @@
 
     <!-- Vent Box -->
     <div class="vent-box-wrap" id="vent-wrap">
-        <div class="vent-wordcount" id="vent-wordcount">0 words</div>
-        <textarea
-            id="vent-text"
-            class="vent-textarea"
-            placeholder="Start typing... no one is watching, nothing is saved. Just you and your thoughts."
-            autofocus
-        ></textarea>
-        <div class="vent-actions">
+    <div class="vent-wordcount" id="vent-wordcount">0 words</div>
+    <button class="voice-btn" id="vent-voice-btn" title="Click to speak" style="position:absolute; top:14px; right:14px; z-index:5;">🎤</button>
+    <textarea
+        id="vent-text"
+        class="vent-textarea"
+        placeholder="Start typing... no one is watching, nothing is saved. Just you and your thoughts."
+        autofocus
+    ></textarea>
+    <div class="vent-actions">
             <button class="vent-btn release" onclick="releaseVent()">
                 🔥 Release & Delete
             </button>
